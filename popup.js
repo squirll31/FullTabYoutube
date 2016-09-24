@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isYoutubeRegex.test(url)){
       renderStatus("url is youtube");
       if (isVideoRegex.test(url)){
-        renderStatus("video  = good");
+        renderStatus("video = good");
       } else {
         renderStatus("not a video.");    
       } 

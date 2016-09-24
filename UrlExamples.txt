@@ -1,0 +1,12 @@
+https://www.youtube.com/watch?v=bWvyJ05TdC8&index=22&list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+https://www.youtube.com/embed/bWvyJ05TdC8?list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+https://www.youtube.com/embed/bWvyJ05TdC8?index=22&list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+
+Initial url:
+https://www.youtube.com/watch?v=bWvyJ05TdC8&index=22&list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+
+Embed playlist:
+https://www.youtube.com/embed/bWvyJ05TdC8?list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+
+Embed playlist at position:
+https://www.youtube.com/embed/bWvyJ05TdC8?index=22&list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
