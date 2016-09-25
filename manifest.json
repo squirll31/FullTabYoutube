@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
 
-  "name": "Popout test",
-  "description": "Pop out the current youtube video or playlist",
+  "name": "Switch To YouTube Embed",
+  "description": "Switch from the standard desktop YouTube page, to the full-tab embed player.",
   "version": "1.0",
 
   "browser_action": {
@@ -13,7 +13,6 @@
     "persistent" : false
   },
   "permissions": [
-    "activeTab",
-    "https://ajax.googleapis.com/"
+    "activeTab"
   ]
 }
