@@ -10,3 +10,15 @@ https://www.youtube.com/embed/bWvyJ05TdC8?list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_i
 
 Embed playlist at position:
 https://www.youtube.com/embed/bWvyJ05TdC8?index=22&list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+
+Playlist:
+https://www.youtube.com/playlist?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+
+Embed Playlist:
+https://www.youtube.com/embed/videoseries?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+
+Embed Playlist at Video:
+https://www.youtube.com/embed/NpC39uS4K4o?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+
+Embed only video:
+https://www.youtube.com/embed/RBgeCCW5Hjs

@@ -1,13 +1,3 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-/**
- * Get the current URL.
- *
- * @param {function(string)} callback - called when the URL of the current tab
- *   is found.
- */
 function getCurrentTabUrl(callback) {
   // Query filter to be passed to chrome.tabs.query - see
   // https://developer.chrome.com/extensions/tabs#method-query
@@ -17,119 +7,206 @@ function getCurrentTabUrl(callback) {
   };
 
   chrome.tabs.query(queryInfo, function(tabs) {
-    // chrome.tabs.query invokes the callback with a list of tabs that match the
-    // query. When the popup is opened, there is certainly a window and at least
-    // one tab, so we can safely assume that |tabs| is a non-empty array.
-    // A window can only have one active tab at a time, so the array consists of
-    // exactly one tab.
     var tab = tabs[0];
-
-    // A tab is a plain object that provides information about the tab.
-    // See https://developer.chrome.com/extensions/tabs#type-Tab
     var url = tab.url;
-
-    // tab.url is only available if the "activeTab" permission is declared.
-    // If you want to see the URL of other tabs (e.g. after removing active:true
-    // from |queryInfo|), then the "tabs" permission is required to see their
-    // "url" properties.
     console.assert(typeof url == 'string', 'tab.url should be a string');
-
-    tab.url = "chrome://extensions";
-    callback(url);
+    callback(url, tab.id);
   });
-
-  // Most methods of the Chrome extension APIs are asynchronous. This means that
-  // you CANNOT do something like this:
-  //
-  // var url;
-  // chrome.tabs.query(queryInfo, function(tabs) {
-  //   url = tabs[0].url;
-  // });
-  // alert(url); // Shows "undefined", because chrome.tabs.query is async.
-}
-
-/**
- * @param {string} searchTerm - Search term for Google Image search.
- * @param {function(string,number,number)} callback - Called when an image has
- *   been found. The callback gets the URL, width and height of the image.
- * @param {function(string)} errorCallback - Called when the image is not found.
- *   The callback gets a string that describes the failure reason.
- */
- 
-function getImageUrl(searchTerm, callback, errorCallback) {
-  // Google image search - 100 searches per day.
-  // https://developers.google.com/image-search/
-  var searchUrl = 'https://ajax.googleapis.com/ajax/services/search/images' +
-    '?v=1.0&q=' + encodeURIComponent(searchTerm);
-  var x = new XMLHttpRequest();
-  x.open('GET', searchUrl);
-  // The Google image search API responds with JSON, so let Chrome parse it.
-  x.responseType = 'json';
-  x.onload = function() {
-    // Parse and process the response from Google Image Search.
-    var response = x.response;
-    if (!response || !response.responseData || !response.responseData.results ||
-        response.responseData.results.length === 0) {
-      errorCallback('No response from Google Image search!');
-      return;
-    }
-    var firstResult = response.responseData.results[0];
-    // Take the thumbnail instead of the full image to get an approximately
-    // consistent image size.
-    var imageUrl = firstResult.tbUrl;
-    var width = parseInt(firstResult.tbWidth);
-    var height = parseInt(firstResult.tbHeight);
-    console.assert(
-        typeof imageUrl == 'string' && !isNaN(width) && !isNaN(height),
-        'Unexpected respose from the Google Image Search API!');
-    callback(imageUrl, width, height);
-  };
-  x.onerror = function() {
-    errorCallback('Network error.');
-  };
-  x.send();
 }
 
 function renderStatus(statusText) {
   document.getElementById('status').textContent += statusText + "\n";
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  getCurrentTabUrl(function(url) {
+function parseYtUrl(url){
+    var isYoutubeRegex = new RegExp("^(https?://([w]{3}\\.)?youtube\\.com/).+");
+    var isPlaylistUrlExp = new RegExp("/playlist\\?list=");
+    var isVideoUrlRegex = new RegExp("/watch\\?v=");
 
-    var isYoutubeRegex = new RegExp("^https?://([w]{3}\.)?youtube\.com");
-    var isPlayListRegex = new RegExp(".+[\?&]list=.+");
-    var isVideoRegex = new RegExp(".+watch\?v=.+");
-    var hasPosition  = new RegExp(".+[\?&]index=.+");
-    if (isYoutubeRegex.test(url)){
-      renderStatus("url is youtube");
-      if (isVideoRegex.test(url)){
-        renderStatus("video = good");
-      } else {
-        renderStatus("not a video.");    
-      } 
-    } else {
-      renderStatus("not youtube.");  
-    }
-    // Put the image URL in Google search.
+
+    var hasPlaylistPartExp = new RegExp("list=");
+    var isVideoRegex = new RegExp("watch\\?v=");
     
-/*
-    getImageUrl(url, function(imageUrl, width, height) {
+    var hasPositionPartExp  = new RegExp(".+[\\?&]index=.+");
+    
+    
+    var videoPartExp = new RegExp(".+watch\\?v=([A-Za-z0-9-_]+)(&.+)?");
+    var playlistPartExp = new RegExp(".+[\\?&]list=([A-Za-z0-9_-]+)(&.+)?");
+    var plsPosExp = new RegExp(".+[\\?&]index=([A-Za-z0-9-_]+)(&.+)?");
+    
+    var videoUrlParts = {
+                          isVideoUrl : false,
+                          isPlaylistUrl : false,
+                          hasPosition : false,
+                          youtubePart : "no",
+                          videoId : "no", 
+                          playlistId : "no", 
+                          playlistPos : "no",
+    };
 
-      renderStatus('Search term: ' + url + '\n' +
-          'Google image search result: ' + imageUrl);
-      var imageResult = document.getElementById('image-result');
-      // Explicitly set the width/height to minimize the number of reflows. For
-      // a single image, this does not matter, but if you're going to embed
-      // multiple external images in your page, then the absence of width/height
-      // attributes causes the popup to resize multiple times.
-      imageResult.width = width;
-      imageResult.height = height;
-      imageResult.src = imageUrl;
-      imageResult.hidden = false;
+    //renderStatus(url);
 
-    }, function(errorMessage) {
-      renderStatus('Cannot display image. ' + errorMessage);
-    });*/
-  });
-});
+    // If url isn't on youtube, just quit.
+    if (isYoutubeRegex.test(url)) {
+      //renderStatus("url is youtube");
+      videoUrlParts.youtubePart = url.replace(isYoutubeRegex, "$1");
+    } else {
+      return; 
+    }
+    
+    // check to see if we've got a playlist or a video
+    // if we don't have either, just quit.
+    if (isPlaylistUrlExp.test(url)){
+      //renderStatus("url is for a video");  
+      videoUrlParts.isPlaylistUrl = true;
+    } else if (isVideoUrlRegex.test(url)){
+      //renderStatus("url is for a playlist");
+      videoUrlParts.isVideoUrl = true;
+    } else {
+      return;
+    }
+    
+    // if we're working with a video url
+    // ex: https://www.youtube.com/watch?v=RBgeCCW5Hjs
+    if (videoUrlParts.isVideoUrl){
+      videoUrlParts.videoId = url.replace(videoPartExp, "$1");
+      
+      // if it's a part of a playlist
+      // ex: https://www.youtube.com/watch?v=RBgeCCW5Hjs&list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+      if (hasPlaylistPartExp.test(url)){
+        videoUrlParts.playlistId = url.replace(playlistPartExp, "$1");
+        
+        // if it has a playlist position indicated
+        // i belive it's malformed to not have a position, not sure though
+        // ex: https://www.youtube.com/watch?v=RBgeCCW5Hjs&list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq&index=4
+        if (hasPositionPartExp.test(url)) {
+          videoUrlParts.playlistPos = url.replace(plsPosExp, "$1");
+          videoUrlParts.hasPosition = true;
+        }
+      }
+    }
+    // video urls should end up with form
+    // isVideo
+    // https://www.youtube.com/embed/RBgeCCW5Hjs
+    // isVideo && hasPlaylistPart
+    // https://www.youtube.com/embed/NpC39uS4K4o?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+    // isVideo && hasPlaylistPart && hasPositionPart
+    // https://www.youtube.com/embed/bWvyJ05TdC8?index=22&list=PLaDrN74SfdT6duuVl_8qxJ5eaaPHRX_ij
+
+    
+
+    // if we're working with a playlist url
+    // easier than working with a video url
+    // ex: https://www.youtube.com/playlist?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+    if (videoUrlParts.isPlaylistUrl){
+      videoUrlParts.playlistId = url.replace(playlistPartExp, "$1");
+    }
+    // playlist urls should end up with form
+    // https://www.youtube.com/embed/videoseries?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
+    
+/*    renderStatus("result:\n\tvid: " + videoUrlParts.videoId +
+                        "\n\tplsPt: " + videoUrlParts.playlistId +
+                        "\n\tppsPt: " + videoUrlParts.playlistPos +
+                        "\n\tytlPt: " + videoUrlParts.youtubePart +
+                        "\n\tisVid: " + videoUrlParts.isVideoUrl +
+                        "\n\tisPls: " + videoUrlParts.isPlaylistUrl +
+                        "\n\thsPos: " + videoUrlParts.hasPosition
+    );*/
+    return videoUrlParts;
+}
+
+function createEmbedUrl(videoUrlParts){
+    var finalUrl = videoUrlParts.youtubePart + "embed/";
+    if (videoUrlParts.isPlaylistUrl){
+      finalUrl += "videoseries?list=" + videoUrlParts.playlistId;
+    } else if (videoUrlParts.isVideoUrl){
+      finalUrl += videoUrlParts.videoId;
+      if (videoUrlParts.playlistId != "no"){
+        if (videoUrlParts.hasPosition){
+          finalUrl += "?index=" + videoUrlParts.playlistPos + "&";
+        } else {
+         finalUrl += "?";
+        }
+        finalUrl += "list=" + videoUrlParts.playlistId;
+      }
+    }
+    return finalUrl;
+}
+
+function checkUrl(expected, actual){
+    renderStatus(actual);
+    if (actual != expected)
+    {
+      renderStatus("Mismatch! Expected:\n" + expected);
+    }
+    else 
+    {
+      renderStatus("Matched!");  
+    }
+}
+
+function GetEmbedLink(url){
+    var videoUrlParts = parseYtUrl(url);
+    if (null === videoUrlParts){
+      return null;
+    }
+    var finalUrl = createEmbedUrl(videoUrlParts);
+    return finalUrl;
+}
+
+function testProc(url, id){
+    var url3 = "https://www.youtube.com/watch?v=RBgeCCW5Hjs&list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
+    var chk3 = "https://www.youtube.com/embed/RBgeCCW5Hjs?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
+    
+    var url4 = "https://www.youtube.com/watch?v=RBgeCCW5Hjs";
+    var chk4 = "https://www.youtube.com/embed/RBgeCCW5Hjs";
+    
+    var url5 = "https://www.youtube.com/playlist?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
+    var chk5 = "https://www.youtube.com/embed/videoseries?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
+    
+    var url6 = "https://www.youtube.com/watch?v=NpC39uS4K4o&index=2&list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
+    var chk6 = "https://www.youtube.com/embed/NpC39uS4K4o?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
+    
+    var urls = [
+      url3,
+      url4,
+      url5
+    ];
+    
+    var chks = [
+      chk3,
+      chk4,
+      chk5
+    ];
+    
+    for (var x = 0; x < urls.length; x++){
+      var link = GetEmbedLink(urls[x]);
+      checkUrl(chks[x], link);
+    }
+}
+
+function GoToEmbed(url, id){
+    var embedurl = GetEmbedLink(url);
+    if (null === embedurl){
+      chrome.tabs.update(id, {url : url});
+    } else {
+      chrome.tabs.update(id, {url : embedurl});
+    }
+}
+
+function GoToEmbedTab(tab){
+    var url = tab.url;
+    var id = tab.id;
+    var embedurl = GetEmbedLink(url);
+    if (null === embedurl){
+      chrome.tabs.update(id, {url : url});
+    } else {
+      chrome.tabs.update(id, {url : embedurl});
+    }
+}
+/*document.addEventListener('DOMContentLoaded', function() {
+  //getCurrentTabUrl(testProc);
+  getCurrentTabUrl(GoToEmbed);
+});*/
+
+chrome.browserAction.onClicked.addListener(GoToEmbedTab);
