@@ -1,0 +1,6 @@
+# cert files
+*.pem
+*.pub
+
+# gimp files
+*.xcf

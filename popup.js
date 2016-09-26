@@ -1,23 +1,11 @@
-function getCurrentTabUrl(callback) {
-  // Query filter to be passed to chrome.tabs.query - see
-  // https://developer.chrome.com/extensions/tabs#method-query
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
-
-  chrome.tabs.query(queryInfo, function(tabs) {
-    var tab = tabs[0];
-    var url = tab.url;
-    console.assert(typeof url == 'string', 'tab.url should be a string');
-    callback(url, tab.id);
-  });
-}
-
-function renderStatus(statusText) {
-  document.getElementById('status').textContent += statusText + "\n";
-}
-
+/**
+ * Constructs a "videoUrlParts" struct from a standard youtube url
+ *
+ * @param {string} url - A youtube url
+ * 
+ * @return {videoUrlParts} a struct containing video identifiers
+ *
+ */
 function parseYtUrl(url){
     var isYoutubeRegex = new RegExp("^(https?://([w]{3}\\.)?youtube\\.com/).+");
     var isPlaylistUrlExp = new RegExp("/playlist\\?list=");
@@ -43,8 +31,6 @@ function parseYtUrl(url){
                           playlistId : "no", 
                           playlistPos : "no",
     };
-
-    //renderStatus(url);
 
     // If url isn't on youtube, just quit.
     if (isYoutubeRegex.test(url)) {
@@ -104,17 +90,17 @@ function parseYtUrl(url){
     // playlist urls should end up with form
     // https://www.youtube.com/embed/videoseries?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq
     
-/*    renderStatus("result:\n\tvid: " + videoUrlParts.videoId +
-                        "\n\tplsPt: " + videoUrlParts.playlistId +
-                        "\n\tppsPt: " + videoUrlParts.playlistPos +
-                        "\n\tytlPt: " + videoUrlParts.youtubePart +
-                        "\n\tisVid: " + videoUrlParts.isVideoUrl +
-                        "\n\tisPls: " + videoUrlParts.isPlaylistUrl +
-                        "\n\thsPos: " + videoUrlParts.hasPosition
-    );*/
     return videoUrlParts;
 }
 
+/**
+ * Constructs an embed url from a "videoUrlParts" object
+ *
+ * @param {videUrlParts} videoUrlParts - The struct output from
+ *   parseYtUrl
+ * 
+ * @return {string} the embed link constructed from videoUrlParts
+ */
 function createEmbedUrl(videoUrlParts){
     var finalUrl = videoUrlParts.youtubePart + "embed/";
     if (videoUrlParts.isPlaylistUrl){
@@ -133,18 +119,13 @@ function createEmbedUrl(videoUrlParts){
     return finalUrl;
 }
 
-function checkUrl(expected, actual){
-    renderStatus(actual);
-    if (actual != expected)
-    {
-      renderStatus("Mismatch! Expected:\n" + expected);
-    }
-    else 
-    {
-      renderStatus("Matched!");  
-    }
-}
-
+/**
+ * Translates a regular YouTube url into the embed version 
+ *
+ * @param {string} url - the url of the current tab
+ * 
+ * @return the translated url if successful, null otherwise
+ */
 function GetEmbedLink(url){
     var videoUrlParts = parseYtUrl(url);
     if (null === videoUrlParts){
@@ -154,7 +135,20 @@ function GetEmbedLink(url){
     return finalUrl;
 }
 
-function testProc(url, id){
+/*
+  function checkUrl(expected, actual){
+      renderStatus(actual);
+      if (actual != expected)
+      {
+        renderStatus("Mismatch! Expected:\n" + expected);
+      }
+      else 
+      {
+        renderStatus("Matched!");  
+      }
+  }
+
+  function testProc(url, id){
     var url3 = "https://www.youtube.com/watch?v=RBgeCCW5Hjs&list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
     var chk3 = "https://www.youtube.com/embed/RBgeCCW5Hjs?list=PL5PHm2jkkXmi5CxxI7b3JCL1TWybTDtKq";
     
@@ -183,17 +177,14 @@ function testProc(url, id){
       var link = GetEmbedLink(urls[x]);
       checkUrl(chks[x], link);
     }
-}
+}*/
 
-function GoToEmbed(url, id){
-    var embedurl = GetEmbedLink(url);
-    if (null === embedurl){
-      chrome.tabs.update(id, {url : url});
-    } else {
-      chrome.tabs.update(id, {url : embedurl});
-    }
-}
-
+/**
+ * Callback assed to chrome.browserAction.onClicked.addListener()
+ *
+ * @param {chrome.tabs.Tab} tab - the active tab
+ * 
+ */
 function GoToEmbedTab(tab){
     var url = tab.url;
     var id = tab.id;
@@ -204,9 +195,5 @@ function GoToEmbedTab(tab){
       chrome.tabs.update(id, {url : embedurl});
     }
 }
-/*document.addEventListener('DOMContentLoaded', function() {
-  //getCurrentTabUrl(testProc);
-  getCurrentTabUrl(GoToEmbed);
-});*/
 
 chrome.browserAction.onClicked.addListener(GoToEmbedTab);

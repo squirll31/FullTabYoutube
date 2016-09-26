@@ -3,7 +3,7 @@
 
   "name": "Switch To YouTube Embed",
   "description": "Switch from the standard desktop YouTube page, to the full-tab embed player.",
-  "version": "1.0",
+  "version": "0.0.1.0",
 
   "icons" : { 
     "128" : "icon128.png"
@@ -12,7 +12,7 @@
     "default_icon": "icon128.png"
   },
   "background" : {
-    "scripts" : ["popup.js"],
+    "scripts" : ["popup.min.js"],
     "persistent" : false
   },
   "permissions": [
