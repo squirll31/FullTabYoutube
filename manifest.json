@@ -3,7 +3,7 @@
 
   "name": "Switch To YouTube Embed",
   "short_name" : "YT Embed Nav",
-  "description": "Switch from the standard desktop YouTube page, to the full-tab embed player.",
+  "description": "Switch from the standard desktop YouTube page to the full-tab embed player.",
   "version": "0.0.1.0",
 
   "icons" : { 
