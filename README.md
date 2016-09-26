@@ -10,7 +10,7 @@ A really simple button that navigates from a standard YouTube page to the embedd
 
 ## Why?
 
-This gives you a resizable version of the YouTube player by accesing it through the enmbed URL. The embedded view of a video takes up the entire tab but isn't fullscreen so you can interact with it like any other Chrome window or tab.
+This gives you a resizable version of the YouTube player by accessing it through the embed URL. The embedded view of a video takes up the entire tab but isn't full-screen so you can interact with it like any other Chrome window or tab.
 
 ## What does it do?
 
